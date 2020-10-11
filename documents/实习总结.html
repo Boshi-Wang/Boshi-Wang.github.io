@@ -1,0 +1,270 @@
+<!DOCTYPE html><html><head><title>实习总结</title><meta charset='utf-8'><link href='https://dn-maxiang.qbox.me/res-min/themes/marxico.css' rel='stylesheet'><style></style></head><body><div id='preview-contents' class='note-content'>
+                        
+                    
+
+
+
+<h1 id="实习总结">实习总结</h1>
+
+<div><div class="toc"><div class="toc">
+<ul>
+<li><a href="#实习总结">实习总结</a><ul>
+<li><a href="#了解目前的推荐优化模型">了解目前的推荐优化模型</a><ul>
+<li><a href="#目前模型总结">目前模型总结</a><ul>
+<li><a href="#策略一最主要的策略基于关键词的协同过滤机制">策略一（最主要的策略）：基于关键词的协同过滤机制</a></li>
+<li><a href="#策略二对于每篇blog把标题搜索最多的landing在es站内搜索">策略二：对于每篇blog把标题+搜索最多的landing在ES站内搜索</a></li>
+<li><a href="#策略三把标题搜索最多的landing在百度搜索提取结果中的csdn博客">策略三：把标题+搜索最多的landing在百度搜索，提取结果中的CSDN博客</a></li>
+</ul>
+</li>
+<li><a href="#发现的一些问题待提高的空间">发现的一些问题，待提高的空间</a><ul>
+<li><a href="#问题①">问题①</a></li>
+<li><a href="#问题②">问题②</a></li>
+<li><a href="#问题③">问题③</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#尝试解决问题">尝试解决问题</a><ul>
+<li><a href="#暴力计算未采用">暴力计算（未采用）</a></li>
+<li><a href="#聚类未采用">聚类（未采用）</a></li>
+<li><a href="#按某种办法排序分组以近似聚类最终采用">按某种办法排序、分组以近似聚类（最终采用）</a><ul>
+<li><a href="#按照字典序排序未采用">按照字典序排序（未采用）</a></li>
+<li><a href="#按照关键词排序采用">按照关键词排序（采用）</a></li>
+<li><a href="#分开每个group">分开每个group</a></li>
+<li><a href="#加入数据预处理去掉停用词">加入数据预处理：去掉停用词。</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#目前的完整算法结合代码便于对接">目前的完整算法，结合代码（便于对接）</a><ul>
+<li><a href="#流程">流程</a><ul>
+<li><a href="#预处理对所有landing做分词并去除停用词60s">预处理：对所有landing做分词并去除停用词。（≈60s）</a></li>
+<li><a href="#关键词提取将所有landing转化成一个keyword-vector30s">关键词提取：将所有landing转化成一个keyword vector。（≈30s）</a></li>
+<li><a href="#按关键词排序对所有keyword-vector排序记录每个landing排序前的位置信息5s">按关键词排序：对所有keyword vector排序，记录每个landing排序前的位置信息。（≈5s）</a></li>
+<li><a href="#分组对按关键词排好序的所有相邻landing计算相似度相似度低于05处分组40s">分组：对按关键词排好序的所有相邻landing计算相似度，相似度低于0.5处分组。（≈40s）</a></li>
+<li><a href="#将每个组分开并统一存到一个list里">将每个组分开，并统一存到一个list里：</a></li>
+<li><a href="#对每个landing计算相似度每组内部计算以每个landing为中心组内其余landing的相似度并取相似度前10150s">对每个landing计算相似度：每组内部计算以每个landing为中心，组内其余landing的相似度并取相似度前10。（≈150s）</a></li>
+<li><a href="#输出到文件">输出到文件</a></li>
+</ul>
+</li>
+<li><a href="#计算耗时环境阿里云服务器32g内存">计算耗时（环境：阿里云服务器，32G内存）</a></li>
+</ul>
+</li>
+<li><a href="#后续">后续</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+<h2 id="了解目前的推荐优化模型">了解目前的推荐优化模型</h2>
+
+
+
+<h3 id="目前模型总结">目前模型总结</h3>
+
+<p>共三种策略，<strong>其中策略一为重</strong>，推荐数目不够的时候用策略二和策略三来补。</p>
+
+<h4 id="策略一最主要的策略基于关键词的协同过滤机制">策略一（最主要的策略）：基于关键词的协同过滤机制</h4>
+
+<p>对于一个博客: <br>
+①先找出所有能lead to这个博客的百度搜索关键词； <br>
+②优先选择哪个关键词是人们搜的最多的（代表更多人都搜的什么）； <br>
+③对于每个关键词把其相关的博客推荐到下方的模块。</p>
+
+
+
+<h4 id="策略二对于每篇blog把标题搜索最多的landing在es站内搜索">策略二：对于每篇blog把标题+搜索最多的landing在ES站内搜索</h4>
+
+<h4 id="策略三把标题搜索最多的landing在百度搜索提取结果中的csdn博客">策略三：把标题+搜索最多的landing在百度搜索，提取结果中的CSDN博客</h4>
+
+<h3 id="发现的一些问题待提高的空间">发现的一些问题，待提高的空间</h3>
+
+
+
+<h4 id="问题①">问题①</h4>
+
+<p>不知道当前用户是搜的什么关键词进来的，所以只能用关键词搜索较多的词来估计，但其实<code>当前这个读者进入这个博客的landing词</code>才是关键所在，代表着这个读者的需求。但是这个问题很难解决，需要实时的数据。所以目前的推荐本质上是从博客到博客而不是从用户到博客。</p>
+
+
+
+<h4 id="问题②">问题②</h4>
+
+<p>关键词的匹配是<code>按照严格的字符串匹配</code>。这样的话很多相近的搜索词被看做完全不一样看待，也包括一些没用的停用词。这样很大降低了一个博客的landing词的数目和质量。如大牛的推荐优化中写的，需要做关键词<code>提取和滤重</code>。如果能够对每个landing能将其关键词相同或相近的landing也找出来，可以很大补足策略一数目不够的问题。</p>
+
+<h4 id="问题③">问题③</h4>
+
+<p>博客的许多特征（浏览量，评论数等）可以用在最后推荐的排序，没有用上。</p>
+
+<h2 id="尝试解决问题">尝试解决问题</h2>
+
+<p>在考虑之后觉得尝试解决<strong>问题②</strong>更加切实一些。 <br>
+<strong>目标：</strong>最终希望能实现对于每个landing词找出其关键词相同或相近的landing词，规避使用严格的字符串匹配带来的数据利用不充足的问题。 <br>
+<strong>最核心的要解决的问题有两个：</strong> <br>
+①如何计算两个landing词的相似度 <br>
+②如何在较短时间内计算出每一个landing词的相似landing词。</p>
+
+<h3 id="暴力计算未采用">暴力计算（未采用）</h3>
+
+<p>对于每个landing词，计算它与所有landing词的相似度，然后取出相似度高于某个阈值的作为其相似的landing词。问题显然会是复杂度：这是一个<span xmlns="http://www.w3.org/1999/xhtml" class="" rel="d2339572851da2423398f6e35d6212dd"><span class="MathJax_SVG" id="MathJax-Element-10-Frame" role="textbox" aria-readonly="true" style="font-size: 100%; display: inline-block;"><span><img type="image/png" width="72.9625" height="20.9875" longdesc="__SVG__undefined" src="data:image/png;base64,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" style="margin-top:0;margin-bottom:0;"></span></span></span>复杂度的算法。实际测试了一下，使用一个很简单的字符串匹配函数，在阿里云服务器上（32G内存）用spark计算，n到10000就报heap space不够，离一天的（110万）数据甚至都差距太大。 <br>
+<strong>要避免使用<span xmlns="http://www.w3.org/1999/xhtml" class="" rel="3987120c67ed5a9162aa9841b531c3a9"><span class="MathJax_SVG" id="MathJax-Element-11-Frame" role="textbox" aria-readonly="true" style="font-size: 100%; display: inline-block;"><span><img type="image/png" width="45.975" height="20.9875" longdesc="__SVG__undefined" src="data:image/png;base64,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" style="margin-top:0;margin-bottom:0;"></span></span></span>及以上复杂度的算法。</strong></p>
+
+<h3 id="聚类未采用">聚类（未采用）</h3>
+
+<p>在观察了部分数据之后，觉得类似聚类的算法可能会有效果。但是传统的聚类算法，如k-means，很难用在字符串的聚类，因为每次迭代不好取每个group中landing词的中心词，同时也很难决定要使用多少个聚类中心。</p>
+
+<h3 id="按某种办法排序分组以近似聚类最终采用">按某种办法排序、分组以近似聚类（最终采用）</h3>
+
+<p><strong>排序</strong>是<span xmlns="http://www.w3.org/1999/xhtml" class="" rel="886d98d27305a631e732032f8ed6c50c"><span class="MathJax_SVG" id="MathJax-Element-9-Frame" role="textbox" aria-readonly="true" style="font-size: 100%; display: inline-block;"><span><img type="image/png" width="102.963" height="17.9875" longdesc="__SVG__undefined" src="data:image/png;base64,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" style="margin-top:0;margin-bottom:0;"></span></span></span>复杂度的算法，实际上对于字符类而言排序能一定程度上近似聚类的效果，比如直接在excel里把所有词排序也可以看出许多相近的内容聚在了一起。</p>
+
+<h4 id="按照字典序排序未采用">按照字典序排序（未采用）</h4>
+
+<p>实测发现这种算的很快，但是很不精确。这主要受到许多没有意义的停用词的影响，同时纯粹的逐个字符比较对关键词完全没有利用。</p>
+
+<h4 id="按照关键词排序采用">按照关键词排序（采用）</h4>
+
+<p>对每个landing做关键词提取，之后把所有landing按照关键词排序，这样关键词相近的就会在一起，相同的则会完全相邻。 <br>
+<strong>采用jieba关键词提取：</strong>将每个landing转化为一个keyword vector。目前用TF-IDF关键词提取。 <br>
+例：’python让两部分代码块同时执行’-&gt;[‘python’, ‘代码’, ‘执行’, ‘部分’, ‘同时’] <br>
+每个keyword vector内部排序后总排序，这样关键词相近的就会聚在一起，相同的会完全相邻。 <br>
+接下来的问题是<strong>如何分开每个group。</strong></p>
+
+<h4 id="分开每个group">分开每个group</h4>
+
+<p>考虑计算每两个相邻的landing的相似度，相似度低于一定阈值就算一个新的group。 <br>
+考虑了两种相似度匹配函数： <br>
+<strong>第一种：</strong>用余弦相似度计算两两keyword vector相似度。效果很差，遇到了一开始的问题：即使提取了关键词，关键词之间的匹配还是按照字符串匹配。实际发现在许多情况中，如‘代码块’与‘代码’，这种算法相当于看做完全不一样。对于很长的error log效果更加差。 <br>
+<strong>第二种：</strong>最长公共子字符串（从error log得来的灵感）可以更好捕捉相似度，而且对于error log效果显著，但是受到大量停用词的影响，因为许多恰巧相同的停用词或字也被加入子字符串了。<strong>需要去除停用词</strong>。</p>
+
+<h4 id="加入数据预处理去掉停用词">加入数据预处理：去掉停用词。</h4>
+
+<p>在github上扒了一个停用词表，在一开始对每个landing词做分词处理后去掉停用词。此步需要较长时间，对于110万数据需要计算60秒左右。 <br>
+部分结果：[‘高维高斯分布’,’高斯分布’, ‘超高斯分布’, ‘复高斯分布’,’类高斯分布’], [‘闭黎曼流形的高斯’], [‘高斯核’, ‘高斯’, ‘高斯窗’, ‘单高斯’], [‘高数’],[‘高教版’], [‘最高效’, ‘高效’] <br>
+也有一些很短的不想关的聚在了一起：[‘龚麒’,’龚纯’]，可以通过调整相似度阈值（目前是&lt;0.5）解决。</p>
+
+
+
+<h2 id="目前的完整算法结合代码便于对接">目前的完整算法，结合代码（便于对接）</h2>
+
+
+
+<h3 id="流程">流程</h3>
+
+<h4 id="预处理对所有landing做分词并去除停用词60s"><strong>预处理</strong>：对所有landing做分词并去除停用词。（≈60s）</h4>
+
+<p>其中stopwords.txt为停用词表</p>
+
+<pre class="prettyprint hljs-dark"><code class="language-python hljs"><div class="hljs-line"><span class="hljs-comment"># preprocessing, delete stopwords</span>
+</div><div class="hljs-line">stopwords = [line.strip() <span class="hljs-keyword">for</span> line <span class="hljs-keyword">in</span> open(<span class="hljs-string">'stopword.txt'</span>, <span class="hljs-string">'rb'</span>).readlines()]
+</div><div class="hljs-line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">transfer</span><span class="hljs-params">(x)</span>:</span>
+</div><div class="hljs-line">    rua = jieba.lcut(x, cut_all=<span class="hljs-keyword">False</span>)
+</div><div class="hljs-line">    outstr = <span class="hljs-string">""</span>
+</div><div class="hljs-line">    <span class="hljs-keyword">for</span> word <span class="hljs-keyword">in</span> rua:
+</div><div class="hljs-line">        <span class="hljs-keyword">if</span> word <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> stopwords:
+</div><div class="hljs-line">            outstr += word
+</div><div class="hljs-line">    <span class="hljs-keyword">return</span> outstr
+</div><div class="hljs-line">rdd = sc.parallelize(a)
+</div><div class="hljs-line">tick = time.time()
+</div><div class="hljs-line">a = rdd.map(transfer).collect()
+</div><div class="hljs-line">print(<span class="hljs-string">"preprocessing using: "</span>,time.time()-tick)
+</div></code></pre>
+
+
+
+<h4 id="关键词提取将所有landing转化成一个keyword-vector30s"><strong>关键词提取</strong>：将所有landing转化成一个keyword vector。（≈30s）</h4>
+
+<pre class="prettyprint hljs-dark"><code class="language-python hljs"><div class="hljs-line"><span class="hljs-comment"># map each landing to a (index,keyword vector) pair</span>
+</div><div class="hljs-line">indices = [i <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> range(len(a))]
+</div><div class="hljs-line">rdd = sc.parallelize(indices)
+</div><div class="hljs-line">tick = time.time()
+</div><div class="hljs-line">data = rdd.map(<span class="hljs-keyword">lambda</span> x: (x,keyword_vec(a[x]))).collect()
+</div><div class="hljs-line">print(<span class="hljs-string">"keyword extracting using time: "</span>, time.time()-tick)
+</div></code></pre>
+
+
+
+<h4 id="按关键词排序对所有keyword-vector排序记录每个landing排序前的位置信息5s"><strong>按关键词排序</strong>：对所有keyword vector排序，记录每个landing排序前的位置信息。（≈5s）</h4>
+
+<pre class="prettyprint hljs-dark"><code class="language-python hljs"><div class="hljs-line"><span class="hljs-comment"># sort by keyword vector, after which each group is basically together</span>
+</div><div class="hljs-line">tick = time.time()
+</div><div class="hljs-line">data.sort(reverse = <span class="hljs-keyword">True</span>, key = <span class="hljs-keyword">lambda</span> x: x[<span class="hljs-number">1</span>])
+</div><div class="hljs-line">print(<span class="hljs-string">"sort using time: "</span>, time.time()-tick)
+</div></code></pre>
+
+
+
+<h4 id="分组对按关键词排好序的所有相邻landing计算相似度相似度低于05处分组40s"><strong>分组</strong>：对按关键词排好序的所有相邻landing计算相似度，相似度低于0.5处分组。（≈40s）</h4>
+
+<p>其中相似度匹配similarity_string是采用最长公共子字符串，而不是采用余弦相似度。</p>
+
+<pre class="prettyprint hljs-dark"><code class="language-python hljs"><div class="hljs-line"><span class="hljs-comment"># ids for landing_query that are in the same group should be near each other in this list</span>
+</div><div class="hljs-line">new_list_id = [i[<span class="hljs-number">0</span>] <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> data]   
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">indices = [(new_list_id[i],new_list_id[i+<span class="hljs-number">1</span>]) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> range(len(data)<span class="hljs-number">-1</span>)]
+</div><div class="hljs-line">tick = time.time()
+</div><div class="hljs-line">rdd = sc.parallelize(indices)
+</div><div class="hljs-line">rua = np.array(rdd.map(<span class="hljs-keyword">lambda</span> x: similarity_string(a[x[<span class="hljs-number">0</span>]],a[x[<span class="hljs-number">1</span>]])).collect())
+</div><div class="hljs-line">print(<span class="hljs-string">"grouping using time: "</span>,time.time()-tick)
+</div></code></pre>
+
+<p>注：关键词提取（转为keyword vector）的唯一作用是将landing按关键词排序，因为没有采用余弦相似度（similarity_vector函数没有用到）。</p>
+
+<h4 id="将每个组分开并统一存到一个list里">将每个组分开，并统一存到一个list里：</h4>
+
+<pre class="prettyprint hljs-dark"><code class="language-python hljs"><div class="hljs-line">index = np.where(rua&lt;=<span class="hljs-number">0.5</span>)[<span class="hljs-number">0</span>]
+</div><div class="hljs-line">all_groups = []
+</div><div class="hljs-line"><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> range(len(index)):
+</div><div class="hljs-line">    <span class="hljs-keyword">if</span> i == <span class="hljs-number">0</span>:
+</div><div class="hljs-line">        all_groups.append(new_list_id[:(index[i]+<span class="hljs-number">1</span>)])
+</div><div class="hljs-line">    <span class="hljs-keyword">elif</span> i == len(index)<span class="hljs-number">-1</span>:
+</div><div class="hljs-line">        all_groups.append(new_list_id[(index[i<span class="hljs-number">-1</span>]+<span class="hljs-number">1</span>):(index[i]+<span class="hljs-number">1</span>)])
+</div><div class="hljs-line">        all_groups.append(new_list_id[(index[i]+<span class="hljs-number">1</span>):])
+</div><div class="hljs-line">    <span class="hljs-keyword">else</span>:
+</div><div class="hljs-line">        all_groups.append(new_list_id[(index[i<span class="hljs-number">-1</span>]+<span class="hljs-number">1</span>):(index[i]+<span class="hljs-number">1</span>)])
+</div><div class="hljs-line">all_groups = np.array(all_groups)
+</div><div class="hljs-line"><span class="hljs-comment"># now all_groups is in the form [group1,group2,...]</span>
+</div><div class="hljs-line">print(<span class="hljs-string">"# of groups: "</span>,len(all_groups))
+</div></code></pre>
+
+
+
+<h4 id="对每个landing计算相似度每组内部计算以每个landing为中心组内其余landing的相似度并取相似度前10150s">对每个landing计算相似度：每组内部计算以每个landing为中心，组内其余landing的相似度并取相似度前10。（≈150s）</h4>
+
+
+
+<pre class="prettyprint hljs-dark"><code class="language-python hljs"><div class="hljs-line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">group</span><span class="hljs-params">(x)</span>:</span>
+</div><div class="hljs-line">    out = []
+</div><div class="hljs-line">    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> x:
+</div><div class="hljs-line">        <span class="hljs-comment"># for a[i] </span>
+</div><div class="hljs-line">        local_list = []
+</div><div class="hljs-line">        <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> x:
+</div><div class="hljs-line">            local_list.append((initial_wordlist[j],similarity_string(a[j],a[i])))
+</div><div class="hljs-line">        local_list.sort(reverse = <span class="hljs-keyword">True</span>, key = <span class="hljs-keyword">lambda</span> x: x[<span class="hljs-number">1</span>])
+</div><div class="hljs-line">        local_list = local_list[:top_N]
+</div><div class="hljs-line">        local_list.insert(<span class="hljs-number">0</span>,initial_wordlist[i])
+</div><div class="hljs-line">        out.append(local_list)
+</div><div class="hljs-line">    <span class="hljs-keyword">return</span> out
+</div><div class="hljs-line">result = rdd.map(group).collect()
+</div></code></pre>
+
+
+
+<h4 id="输出到文件">输出到文件</h4>
+
+
+
+<pre class="prettyprint hljs-dark"><code class="language-python hljs"><div class="hljs-line"><span class="hljs-comment"># write result to file</span>
+</div><div class="hljs-line">f = open(<span class="hljs-string">"notes.txt"</span>,<span class="hljs-string">"w"</span>)
+</div><div class="hljs-line">f.write(str(result))
+</div><div class="hljs-line">f.close()
+</div></code></pre>
+
+<h3 id="计算耗时环境阿里云服务器32g内存">计算耗时（环境：阿里云服务器，32G内存）</h3>
+
+<p>在110万个landing词上共耗时约360秒（如果不包含最后一步计算，即只到分组完毕则需要150秒），聚出70万个类，可见一天数据还是比较离散，但是最大的类有384个landing。</p>
+
+<h2 id="后续">后续</h2>
+
+<p>准备对接一下运行环境、输出数据格式等等，在线下集群跑更大的数据量，然后把数据应用到目前的模型里，再上线测试。 <br>
+目前要回学校，在学校可以接着做。</p></div></body></html>

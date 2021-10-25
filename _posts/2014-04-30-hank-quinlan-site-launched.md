@@ -10,8 +10,8 @@ Neural NLP models began popular when attention mechanism was introduced in machi
 landmark where for the first time, neural models outperform traditional methods based on feature engineering with domain knowledge. 
 The idea of attention is very simple: when we translate a piece of text, we tend to focus on different parts of the input at different stages.
 This leads to its formal implementation, which uses similarities to aggregate hidden representations of each input unit, and pass that aggregated
-message as additional information for predicting the current step output. From then on, better heuristics are found, including
-Transformer - perhaps the most significant one in NLP so far which opens the era of pretrained language models (BERT, etc.).
+message as additional information for predicting the current step output. From that time on, better and better heuristics are found, including
+the famous Transformer which opens the era of pretrained language models (BERT, etc.) and transfer learning.
 
 Heuristics are good, and better heuristics are found every day. But is this the final picture of
 how we improve our system? Are we just going to try to come up with new heuristics from our intuition, 

@@ -45,7 +45,7 @@ h2 {
     }
 
 h3 {
-    font-size   : 16px;
+    font-size   : 17px;
     line-height : 1.8em;
     font-weight : 500;
     }
@@ -470,7 +470,6 @@ button:focus,
     margin         : 0 0 4px;
     line-height    : 1;
     font-weight    : bold;
-    text-transform : uppercase;
     }
 
 .content-item h4 {
